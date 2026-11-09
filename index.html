@@ -9,9 +9,10 @@
   :root { --bg:#0b0d10; --card:#14171c; --bordo:#262b33; --testo:#a9b1bb; --tenue:#6b737d; --link:#6f9fd8; }
   html,body { background:var(--bg); color:var(--testo); margin:0; }
   body { font:18px/1.5 system-ui, sans-serif; padding:16px; max-width:900px; margin:0 auto; }
-  #versione { position:fixed; top:6px; right:10px; font-size:12px; color:var(--tenue); }
-  h1 { font-size:24px; font-weight:600; margin:8px 0 16px; }
-  #stato { color:var(--tenue); }
+  #testa { display:flex; justify-content:space-between; align-items:baseline; margin-top:8px; }
+  #versione { font-size:12px; color:var(--tenue); }
+  h1 { font-size:24px; font-weight:600; margin:0; }
+  #stato { color:var(--tenue); margin:2px 0 16px; }
   ul { list-style:none; padding:0; margin:0; }
   li { background:var(--card); border:1px solid var(--bordo); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
   .nome { font-size:20px; font-weight:600; color:var(--link); text-decoration:none; }
@@ -20,8 +21,7 @@
 </style>
 </head>
 <body>
-<div id="versione">v1.1</div>
-<h1>Le mie repository</h1>
+<div id="testa"><h1>Le mie repository</h1><span id="versione">v1.2</span></div>
 <p id="stato">Caricamento…</p>
 <ul id="elenco"></ul>
 <script>
@@ -40,6 +40,7 @@ async function carica() {
       if (blocco.length < 100) break;
       pagina++;
     }
+    tutte = tutte.filter(r => r.name.toLowerCase() !== UTENTE.toLowerCase() + ".github.io");
     tutte.sort((a, b) => a.name.localeCompare(b.name, "it", { sensitivity: "base" }));
     const ul = document.getElementById("elenco");
     for (const repo of tutte) {
