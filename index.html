@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <title>Le mie repository</title>
 <style>
-  :root { --bg:#0b0d10; --card:#14171c; --bordo:#262b33; --testo:#a9b1bb; --tenue:#6b737d; --link:#6f9fd8; --app:#5fa37a; }
+  :root { --bg:#0b0d10; --card:#14171c; --bordo:#262b33; --testo:#a9b1bb; --tenue:#6b737d; --link:#6f9fd8; }
   html,body { background:var(--bg); color:var(--testo); margin:0; }
   body { font:18px/1.5 system-ui, sans-serif; padding:16px; max-width:900px; margin:0 auto; }
   #versione { position:fixed; top:6px; right:10px; font-size:12px; color:var(--tenue); }
@@ -14,16 +14,13 @@
   #stato { color:var(--tenue); }
   ul { list-style:none; padding:0; margin:0; }
   li { background:var(--card); border:1px solid var(--bordo); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
-  .nome { font-size:20px; font-weight:600; }
-  .desc { color:var(--tenue); margin:4px 0 8px; }
-  a { color:var(--link); text-decoration:none; margin-right:18px; }
-  a:hover, a:focus { text-decoration:underline; }
-  a.app { color:var(--app); }
-  .url { font-size:14px; color:var(--tenue); word-break:break-all; display:block; }
+  .nome { font-size:20px; font-weight:600; color:var(--link); text-decoration:none; }
+  .nome:hover, .nome:focus { text-decoration:underline; }
+  .desc { color:var(--tenue); margin-top:4px; }
 </style>
 </head>
 <body>
-<div id="versione">v1.0</div>
+<div id="versione">v1.1</div>
 <h1>Le mie repository</h1>
 <p id="stato">Caricamento…</p>
 <ul id="elenco"></ul>
@@ -47,8 +44,10 @@ async function carica() {
     const ul = document.getElementById("elenco");
     for (const repo of tutte) {
       const li = document.createElement("li");
-      const nome = document.createElement("div");
+      let app = repo.homepage || (repo.has_pages ? (repo.name.toLowerCase() === UTENTE.toLowerCase() + ".github.io" ? PAGES : PAGES + repo.name + "/") : "");
+      const nome = document.createElement("a");
       nome.className = "nome";
+      nome.href = app || repo.html_url;
       nome.textContent = repo.name;
       li.appendChild(nome);
       if (repo.description) {
@@ -57,25 +56,12 @@ async function carica() {
         d.textContent = repo.description;
         li.appendChild(d);
       }
-      li.appendChild(link("Codice", repo.html_url, ""));
-      let app = repo.homepage || (repo.has_pages ? (repo.name.toLowerCase() === UTENTE.toLowerCase() + ".github.io" ? PAGES : PAGES + repo.name + "/") : "");
-      if (app) li.appendChild(link("App", app, "app"));
-      const u = document.createElement("span");
-      u.className = "url";
-      u.textContent = repo.html_url + (app ? "  ·  " + app : "");
-      li.appendChild(u);
       ul.appendChild(li);
     }
     stato.textContent = tutte.length + " repository pubbliche";
   } catch (e) {
     stato.textContent = "Impossibile leggere l'elenco da GitHub (" + e.message + "). Riprova più tardi.";
   }
-}
-function link(testo, url, classe) {
-  const a = document.createElement("a");
-  a.href = url; a.textContent = testo; a.target = "_blank"; a.rel = "noopener";
-  if (classe) a.className = classe;
-  return a;
 }
 carica();
 </script>
