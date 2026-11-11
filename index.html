@@ -15,18 +15,47 @@
   #stato { color:var(--tenue); margin:2px 0 16px; }
   ul { list-style:none; padding:0; margin:0; }
   li { background:var(--card); border:1px solid var(--bordo); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+  .riga { display:flex; align-items:center; gap:12px; }
+  .icona { width:40px; height:40px; border-radius:9px; flex:none; }
   .nome { font-size:20px; font-weight:600; color:var(--link); text-decoration:none; }
   .nome:hover, .nome:focus { text-decoration:underline; }
   .desc { color:var(--tenue); margin-top:4px; }
 </style>
 </head>
 <body>
-<div id="testa"><h1>Le mie repository</h1><span id="versione">v1.2</span></div>
+<div id="testa"><h1>Le mie repository</h1><span id="versione">v1.3</span></div>
 <p id="stato">Caricamento…</p>
 <ul id="elenco"></ul>
 <script>
 const UTENTE = "Forrom58";
 const PAGES = "https://" + UTENTE.toLowerCase() + ".github.io/";
+// Nomi scritti in modo speciale (chiave = nome repository in minuscolo)
+const NOMI = { "cuocipasta": "CuociPasta" };
+
+function nomeBello(n) {
+  return NOMI[n.toLowerCase()] || n.split("-").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join("-");
+}
+
+// Legge l'icona dell'app dal suo manifest (o dalle icone dichiarate nella pagina)
+async function trovaIcona(app) {
+  try {
+    const html = await (await fetch(app)).text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const m = doc.querySelector('link[rel="manifest"]');
+    if (m) {
+      const murl = new URL(m.getAttribute("href"), app).href;
+      const man = await (await fetch(murl)).json();
+      const icone = (man.icons || []).filter(i => !(i.purpose || "any").includes("monochrome"));
+      const dim = i => parseInt((i.sizes || "0").split("x")[0]) || 0;
+      icone.sort((a, b) => Math.abs(dim(a) - 96) - Math.abs(dim(b) - 96));
+      const i = icone.find(i => (i.purpose || "any").includes("any")) || icone[0];
+      if (i) return new URL(i.src, murl).href;
+    }
+    const l = doc.querySelector('link[rel="apple-touch-icon"], link[rel="icon"]');
+    if (l) return new URL(l.getAttribute("href"), app).href;
+  } catch (e) {}
+  return "";
+}
 
 async function carica() {
   const stato = document.getElementById("stato");
@@ -46,11 +75,25 @@ async function carica() {
     for (const repo of tutte) {
       const li = document.createElement("li");
       let app = repo.homepage || (repo.has_pages ? (repo.name.toLowerCase() === UTENTE.toLowerCase() + ".github.io" ? PAGES : PAGES + repo.name + "/") : "");
+      const riga = document.createElement("div");
+      riga.className = "riga";
       const nome = document.createElement("a");
       nome.className = "nome";
       nome.href = app || repo.html_url;
-      nome.textContent = repo.name;
-      li.appendChild(nome);
+      nome.textContent = nomeBello(repo.name);
+      riga.appendChild(nome);
+      li.appendChild(riga);
+      if (app && app.startsWith(PAGES)) {
+        trovaIcona(app).then(src => {
+          if (!src) return;
+          const img = document.createElement("img");
+          img.className = "icona";
+          img.src = src;
+          img.alt = "";
+          img.onerror = () => img.remove();
+          riga.prepend(img);
+        });
+      }
       if (repo.description) {
         const d = document.createElement("div");
         d.className = "desc";
